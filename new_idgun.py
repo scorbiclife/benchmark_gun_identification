@@ -153,10 +153,20 @@ def identify_gun(rle, lt4):
         envelope += gun_phase
     true_rect = envelope.getrect()
 
+    gun_canonical_phase = gun
+    for _ in range(true_period):
+        if (gun[1] - envelope).population > 0:
+            gun_canonical_phase = gun
+            break
+        gun = gun[1]
+    else:
+        print('Failure 2!')
+        return None
+
     r = true_rect
     multiple = true_period
     thing = lt4.pattern("", "LifeHistory")
-    thing += gun
+    thing += gun_canonical_phase
     thing = thing[multiple]
     thing = clip(thing, true_rect)
     thing = thing(-r[0], -r[1])
