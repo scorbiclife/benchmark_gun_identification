@@ -1,6 +1,6 @@
 import os
 
-from catagolue.initialise.idgun import identify_gun
+from old_idgun import identify_gun
 import lifelib
 
 guns = {}
