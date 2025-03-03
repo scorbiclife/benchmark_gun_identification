@@ -13,9 +13,10 @@ mkdir outputs
 
 # Install python-lifelib inside a venv.
 # Alternatively, you can install `python-lifelib` globally
-# and run `python3 ./run-idgun.py > outputs/output.txt`
+# and run `python3 ./main.py old > outputs/output.txt`
 python3 -m venv venv
 venv/bin/pip install python-lifelib
-venv/bin/python3 ./run-old-idgun.py > outputs/output.old.txt
+venv/bin/python3 ./main.py old > outputs/output.old.txt
+venv/bin/python3 ./main.py new > outputs/output.new.txt
 ```
 
