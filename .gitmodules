@@ -4,3 +4,6 @@
 [submodule "glider_guns"]
 	path = glider_guns
 	url = https://github.com/ceebo/glider_guns.git
+[submodule "more_glider_guns"]
+	path = more_glider_guns
+	url = https://github.com/Vort/glider_guns.git
