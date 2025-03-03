@@ -16,6 +16,6 @@ mkdir outputs
 # and run `python3 ./run-idgun.py > outputs/output.txt`
 python3 -m venv venv
 venv/bin/pip install python-lifelib
-venv/bin/python3 ./run-idgun.py > outputs/output.txt
+venv/bin/python3 ./run-old-idgun.py > outputs/output.old.txt
 ```
 
