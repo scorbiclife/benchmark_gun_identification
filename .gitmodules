@@ -1,0 +1,6 @@
+[submodule "catagolue"]
+	path = catagolue
+	url = https://gitlab.com/hatsya/open-source/catagolue.git
+[submodule "glider_guns"]
+	path = glider_guns
+	url = https://github.com/ceebo/glider_guns.git
