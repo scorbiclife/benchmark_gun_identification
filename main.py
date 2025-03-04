@@ -4,8 +4,8 @@ from run_idgun import run_idgun, load_guns
 import old_idgun
 import new_idgun
 
-guntrue_dataset = load_guns("./more_glider_guns/guntrue")
-gun_dataset = load_guns("./more_glider_guns/gun")
+gun_path = sys.argv[2] if len(sys.argv) >= 2 else "./more_glider_guns/gun"
+gun_dataset = load_guns(gun_path)
 
 try:
     if sys.argv[1] == "old":
