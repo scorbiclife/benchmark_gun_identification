@@ -15,11 +15,44 @@ def is_gun(pattern, true_period):
         return False
     return True
 
-def get_gun_phases(gun, true_period, period, envelope_lower_bound):
+def get_bounding_box_naive(gun, true_period, period, naive_envelope, unclipped_envelope):
+    """Get the bounding box with a naive algorithm or throw an error
+    if the naive algorithm cannot be applied.
+
+    We iterate the gun, remove the gliders whenever it crosses
+    our minimal bounding box, and hope that the resulting phases
+    match the actual phases of the gun.
+    The phases would not match when there is a heisenburp-like reaction
+    at the edge of the envelope.
+    """
+    envelope = naive_envelope
+    gun_phases = [gun[i] for i in range(true_period)]
     output_gliders = gun[true_period] - gun
     to_be_glider = output_gliders[-period] - output_gliders
-    phases = []
+
     for i in range(true_period):
+        if (gun - gun_phases[i]).population != 0:
+            raise Error("Naive bounding box algorithm failed.")
+        # Remove gliders until there isn't or the gun fits inside envelope
+        while (gun - envelope).population != 0:
+            if (to_be_glider - gun).population != 0:
+                envelope = clip(unclipped_envelope, (envelope + gun).getrect())
+                break
+            gun -= to_be_glider
+            to_be_glider = to_be_glider[-period]
+        gun = gun[1]
+        to_be_glider = to_be_glider[1]
+    return envelope.getrect()
+
+def get_bounding_box(gun, true_period, period, envelope_lower_bound):
+    """Get the bounding box with a slower but always succeeding algorithm. """
+    output_gliders = gun[true_period] - gun
+    to_be_glider = output_gliders[-period] - output_gliders
+    envelope = gun
+    for i in range(true_period):
+        # For each phase, delete gliders while the resulting pattern is a gun
+        # until the pattern fits in the known lower bound of the bounding box
+        # or there isn't a glider to delete.
         while (gun - envelope_lower_bound).population != 0:
             if (to_be_glider - gun).population != 0:
                 break
@@ -27,10 +60,10 @@ def get_gun_phases(gun, true_period, period, envelope_lower_bound):
                 break
             gun -= to_be_glider
             to_be_glider = to_be_glider[-period]
-        phases.append(gun)
+        envelope += gun
         gun = gun[1]
         to_be_glider = to_be_glider[1]
-    return phases
+    return envelope.getrect()
 
 def identify_gun(rle, lt4):
 
@@ -147,15 +180,27 @@ def identify_gun(rle, lt4):
         print('Failure 1!')
         return None
 
-    gun_phases = get_gun_phases(gun, true_period, period, envelope_lower_bound)
-    envelope = lt4.pattern("", "b3s23")
-    for gun_phase in gun_phases:
-        envelope += gun_phase
-    true_rect = envelope.getrect()
+    # Performance optimization:
+    # we try the naive but fast algorithm first
+    # and then try the slow but accurate one
+    try:
+        bounding_box = get_bounding_box_naive(
+                gun,
+                true_period,
+                period,
+                naive_envelope=envelope_lower_bound,
+                unclipped_envelope=envelope)
+    except:
+        bounding_box = get_bounding_box(
+                gun,
+                true_period,
+                period,
+                envelope_lower_bound=envelope_lower_bound)
+    true_envelope = clip(envelope, bounding_box)
 
     gun_canonical_phase = gun
     for _ in range(true_period):
-        if (gun[1] - envelope).population > 0:
+        if (gun[1] - true_envelope).population > 0:
             gun_canonical_phase = gun
             break
         gun = gun[1]
@@ -163,12 +208,12 @@ def identify_gun(rle, lt4):
         print('Failure 2!')
         return None
 
-    r = true_rect
+    r = bounding_box
     multiple = true_period
     thing = lt4.pattern("", "LifeHistory")
     thing += gun_canonical_phase
     thing = thing[multiple]
-    thing = clip(thing, true_rect)
+    thing = clip(thing, bounding_box)
     thing = thing(-r[0], -r[1])
 
     res = '\n\n#CSYNTH gun_%d costs %d cells.\n#C period %d fullperiod %d bbox %d by %d\n' % (period, r[2] * r[3], period, multiple, r[2], r[3])
